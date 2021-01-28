@@ -9,14 +9,42 @@ header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
 include_once 'config/database.php';
 include_once 'objects/user.php';
 
-$database = new Database();
-$user = new User($db);
+$user = new User();
 
-// get posted data
-$data = json_decode(file_get_contents("php://input"));
+$login = $user->login();
 
-// set product property values
-$user->email = $data->email;
-$email_exists = $user->emailExists();
+include_once 'config/core.php';
+include_once 'libs/php-jwt-master/src/BeforeValidException.php';
+include_once 'libs/php-jwt-master/src/ExpiredException.php';
+include_once 'libs/php-jwt-master/src/SignatureInvalidException.php';
+include_once 'libs/php-jwt-master/src/JWT.php';
+use \Firebase\JWT\JWT;
 
-// files for jwt will be here
+if (password_verify($_POST["password"], json_decode($login, true)[0]["password"])) {
+    $token = array(
+       "iat" => $issued_at,
+       "exp" => $expiration_time,
+       "iss" => $issuer,
+       "data" => array(
+           "id" => json_decode($login, true)[0]["id"]
+       )
+    );
+
+    http_response_code(200);
+
+    $jwt = JWT::encode($token, $key);
+    /*echo json_encode(
+        array(
+            "message" => "Successful login.",
+            "jwt" => $jwt
+        )
+    );*/
+    //$_COOKIE["session"] = $jwt;
+    setcookie("session", $jwt);
+    echo json_encode(array("message" => "Successful login"));
+} else {
+    http_response_code(401);
+    echo json_encode(array("message" => "Login failed."));
+}
+
+?>

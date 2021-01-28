@@ -2,42 +2,28 @@
 
 class User {
 
-	private $conn;
-	private $table_name = "user";
+    private $host = "localhost";
+    private $user = "root";
+    private $password = "";
+    private $database = "restapi";
+    public $conn = NULL;
 
-    public $id;
-    public $username;
-	public $email;
-	public $password;
+	public function __construct(){
+		$this->conn = new mysqli($this->host, $this->user, $this->password, $this->database);
+		if ($this->conn->connect_error) {
+			die ("Connection failed: " . $this->conn->connect_error);
+		}
+		$this->conn->query("SET NAMES 'UTF8';");
+	}
 
-	// constructor
-	public function __construct($db){
-		$this->conn = $db;
-    }
-    
-    /*private function generateNewHashedId($table) {
-        $hashedId = bin2hex(openssl_random_pseudo_bytes(10));
-        $sql = "SELECT COUNT(*) AS count FROM %s WHERE id = '%s'", $table, $hashedId);
+    public function login() {
+        $sql = sprintf('SELECT id, password, email FROM user WHERE username = "%s" OR email = "%s"', $_POST["usernameEmail"], $_POST["usernameEmail"]);
         $result = $this->conn->query($sql);
-        if ($result->num_rows > 0) {
-            $this->generateNewHashedId($table)
-        } else {
-            return $hashedId;
+        $arr = array();
+        while ($row = $result->fetch_array(MYSQLI_ASSOC)) {
+            $arr[] = $row;
         }
+        
+        return json_encode($arr);
     }
-
-    // create new user record
-function create(){
-    public function registration() {
-        $sql = sprintf(`INSERT INTO user (id, username, email, password, email_verified, image) VALUES (
-            "%s",
-            "${req.body.username}",
-            "${req.body.email}",
-            "${password}",
-            "0",
-            "profile.png")
-            ON DUPLICATE KEY UPDATE username = "${req.body.username}", email = "${req.body.email}"`, $this->generateNewHashedId($this->table_name), $_POST["username"], $_POST["email"], )
-    }
-}*/
-
 }
